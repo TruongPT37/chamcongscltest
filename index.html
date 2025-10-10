@@ -30,8 +30,7 @@
     .calendar-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:2px;text-align:center}
     .calendar-day{padding:8px;border:1px solid #eee;background:#fff;cursor:pointer;min-height:36px;display:flex;align-items:center;justify-content:center;font-size:13px}
     .calendar-day.other-month{background:#fafafa;color:#bbb;cursor:default}
-    .calendar-day.not-weekend{background:#f5f5f5;color:#999;cursor:not-allowed}
-    .calendar-day:hover:not(.other-month):not(.not-weekend){background:#e3f2fd}
+    .calendar-day:hover:not(.other-month){background:#e3f2fd}
     .calendar-day.selected{background:#2196F3;color:#fff;border-color:#1976D2}
     .selected-dates{margin-top:8px;font-size:12px;color:#555}
     .selected-dates span{background:#e3f2fd;padding:2px 6px;border-radius:4px;margin:2px;display:inline-block}
@@ -49,36 +48,12 @@
 
   <div id="forms" class="hidden">
     <fieldset>
-      <legend>📅 Đăng ký lịch trực (Thứ 7 / Chủ nhật)</legend>
+      <legend>📅 Đăng ký lịch trực</legend>
       <div class="form-group">
-        <label>Chọn tháng/năm</label>
-        <div class="month-year-selector">
-          <select id="monthSelect1">
-            <option value="0">Tháng 1</option>
-            <option value="1">Tháng 2</option>
-            <option value="2">Tháng 3</option>
-            <option value="3">Tháng 4</option>
-            <option value="4">Tháng 5</option>
-            <option value="5">Tháng 6</option>
-            <option value="6">Tháng 7</option>
-            <option value="7">Tháng 8</option>
-            <option value="8">Tháng 9</option>
-            <option value="9">Tháng 10</option>
-            <option value="10">Tháng 11</option>
-            <option value="11">Tháng 12</option>
-          </select>
-          <select id="yearSelect1"></select>
-        </div>
-      </div>
-      <div class="form-group">
-        <label>Chọn ngày trực (chỉ Thứ 7 hoặc Chủ nhật)</label>
-        <div class="calendar-container">
-          <div class="calendar-header">
-            <div class="calendar-title" id="currentMonth1">Tháng ?</div>
-          </div>
-          <div class="weekday-grid" id="weekday1"></div>
-          <div class="calendar-grid" id="calendar1"></div>
-          <div class="selected-dates" id="selectedDates1">Chưa chọn ngày nào</div>
+        <label>Ngày trực (Tối đa 2 ngày, chỉ T7 & CN)</label>
+        <div style="display:flex; gap:12px">
+            <input id="date1_1" type="date" style="flex:1">
+            <input id="date1_2" type="date" style="flex:1">
         </div>
       </div>
       <div class="form-group">
@@ -161,15 +136,13 @@
 
 <script>
   // ==== CONFIG ====
-  const WEBHOOK_URL = "https://b9a42704daa1.ngrok-free.app/webhook-test/portal/submit";
+  const WEBHOOK_URL = "https://b9a42704daa1.ngrok-free.app/webhook/portal/submit";
   // ================
 
   let idToken = null;
   let userEmail = null;
-  let selectedDates1 = []; // Shift registration dates
-  let selectedDates2 = []; // Attendance dates
-  let currentDate1 = new Date(); // Shift calendar
-  let currentDate2 = new Date(); // Attendance calendar
+  let selectedDates2 = [];
+  let currentDate2 = new Date();
 
   function parseJWT(p){
     p=p.replace(/-/g,'+').replace(/_/g,'/');
@@ -185,11 +158,10 @@
     document.getElementById('forms').classList.remove('hidden');
 
     const today = new Date().toISOString().split('T')[0];
+    document.getElementById('date1_1').value = today;
     document.getElementById('date3').value = today;
 
-    initYearSelector1();
-    initYearSelector2();
-    renderCalendar1();
+    initYearSelector();
     renderCalendar2();
   }
 
@@ -201,123 +173,12 @@
     google.accounts.id.renderButton(document.getElementById('btn'), { theme:"outline", size:"large", text:"signin_with" });
   };
 
-  // ====== Helper: Check if date is weekend ======
-  function isWeekend(dateStr){
-    const date = new Date(dateStr + 'T00:00:00');
-    const day = date.getDay();
-    return day === 0 || day === 6; // 0=Sunday, 6=Saturday
-  }
-
-  // ====== Initialize Year Selector for Shift Registration ======
-  function initYearSelector1(){
-    const yearSelect = document.getElementById('yearSelect1');
-    const currentYear = new Date().getFullYear();
-    
-    for(let y = currentYear - 2; y <= currentYear + 2; y++){
-      const opt = document.createElement('option');
-      opt.value = y;
-      opt.textContent = `Năm ${y}`;
-      if(y === currentYear) opt.selected = true;
-      yearSelect.appendChild(opt);
-    }
-
-    const monthSelect = document.getElementById('monthSelect1');
-    monthSelect.value = new Date().getMonth();
-
-    monthSelect.addEventListener('change', onMonthYearChange1);
-    yearSelect.addEventListener('change', onMonthYearChange1);
-  }
-
-  function onMonthYearChange1(){
-    const month = parseInt(document.getElementById('monthSelect1').value);
-    const year = parseInt(document.getElementById('yearSelect1').value);
-    currentDate1 = new Date(year, month, 1);
-    selectedDates1 = [];
-    renderCalendar1();
-  }
-
-  // ====== Calendar for Shift Registration (weekends only) ======
-  function renderCalendar1(){
-    const year = currentDate1.getFullYear();
-    const month = currentDate1.getMonth();
-
-    document.getElementById('monthSelect1').value = month;
-    document.getElementById('yearSelect1').value = year;
-
-    const monthNames = ["Tháng 1","Tháng 2","Tháng 3","Tháng 4","Tháng 5","Tháng 6","Tháng 7","Tháng 8","Tháng 9","Tháng 10","Tháng 11","Tháng 12"];
-    document.getElementById('currentMonth1').textContent = `${monthNames[month]} ${year}`;
-
-    const dayHeaders = ['CN','T2','T3','T4','T5','T6','T7'];
-    document.getElementById('weekday1').innerHTML = dayHeaders.map(d=>`<div class="weekday">${d}</div>`).join('');
-
-    const firstDay = new Date(year, month, 1).getDay();
-    const daysInMonth = new Date(year, month+1, 0).getDate();
-    const daysInPrevMonth = new Date(year, month, 0).getDate();
-
-    let html = '';
-    
-    // Previous month days
-    for(let i = firstDay - 1; i >= 0; i--){
-      const d = daysInPrevMonth - i;
-      html += `<div class="calendar-day other-month">${d}</div>`;
-    }
-    
-    // Current month days
-    for(let d=1; d<=daysInMonth; d++){
-      const dateStr = `${year}-${String(month+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
-      const isWeekendDay = isWeekend(dateStr);
-      const selected = selectedDates1.includes(dateStr) ? 'selected':'';
-      const notWeekendClass = !isWeekendDay ? 'not-weekend' : '';
-      html += `<div class="calendar-day ${selected} ${notWeekendClass}" data-date="${dateStr}">${d}</div>`;
-    }
-    
-    // Next month days
-    const totalCells = Math.ceil((firstDay + daysInMonth)/7)*7;
-    const remain = totalCells - (firstDay + daysInMonth);
-    for(let d=1; d<=remain; d++){
-      html += `<div class="calendar-day other-month">${d}</div>`;
-    }
-    
-    document.getElementById('calendar1').innerHTML = html;
-
-    // Add click handlers only to weekend days
-    document.querySelectorAll('#calendar1 .calendar-day').forEach(el=>{
-      if(el.classList.contains('other-month') || el.classList.contains('not-weekend')) return;
-      el.addEventListener('click', ()=>{
-        const date = el.getAttribute('data-date');
-        const idx = selectedDates1.indexOf(date);
-        if(idx>=0){ 
-          selectedDates1.splice(idx,1); 
-          el.classList.remove('selected'); 
-        }
-        else { 
-          selectedDates1.push(date); 
-          el.classList.add('selected'); 
-        }
-        updateSelectedDatesDisplay1();
-      });
-    });
-    updateSelectedDatesDisplay1();
-  }
-
-  function updateSelectedDatesDisplay1(){
-    const box = document.getElementById('selectedDates1');
-    if(selectedDates1.length===0){ 
-      box.textContent = 'Chưa chọn ngày nào'; 
-      return; 
-    }
-    const s = selectedDates1.slice().sort().map(dt=>{
-      const [y,m,d] = dt.split('-'); 
-      return `<span>${d}/${m}/${y}</span>`;
-    }).join(' ');
-    box.innerHTML = `Đã chọn: ${s}`;
-  }
-
-  // ====== Initialize Year Selector for Attendance ======
-  function initYearSelector2(){
+  // ====== Initialize Year Selector ======
+  function initYearSelector(){
     const yearSelect = document.getElementById('yearSelect');
     const currentYear = new Date().getFullYear();
     
+    // Tạo options từ năm hiện tại - 2 đến năm hiện tại + 2
     for(let y = currentYear - 2; y <= currentYear + 2; y++){
       const opt = document.createElement('option');
       opt.value = y;
@@ -326,9 +187,11 @@
       yearSelect.appendChild(opt);
     }
 
+    // Set month selector to current month
     const monthSelect = document.getElementById('monthSelect');
     monthSelect.value = new Date().getMonth();
 
+    // Add event listeners
     monthSelect.addEventListener('change', onMonthYearChange);
     yearSelect.addEventListener('change', onMonthYearChange);
   }
@@ -337,7 +200,7 @@
     const month = parseInt(document.getElementById('monthSelect').value);
     const year = parseInt(document.getElementById('yearSelect').value);
     currentDate2 = new Date(year, month, 1);
-    selectedDates2 = [];
+    selectedDates2 = []; // Clear selections when changing month
     renderCalendar2();
   }
 
@@ -346,6 +209,7 @@
     const year = currentDate2.getFullYear();
     const month = currentDate2.getMonth();
 
+    // Update selectors to match current date
     document.getElementById('monthSelect').value = month;
     document.getElementById('yearSelect').value = year;
 
@@ -374,7 +238,7 @@
       html += `<div class="calendar-day ${selected}" data-date="${dateStr}">${d}</div>`;
     }
     
-    // Next month days
+    // Next month days to fill the grid
     const totalCells = Math.ceil((firstDay + daysInMonth)/7)*7;
     const remain = totalCells - (firstDay + daysInMonth);
     for(let d=1; d<=remain; d++){
@@ -383,7 +247,7 @@
     
     document.getElementById('calendar2').innerHTML = html;
 
-    // Add click handlers
+    // Add click handlers only to current month days
     document.querySelectorAll('#calendar2 .calendar-day').forEach(el=>{
       if(el.classList.contains('other-month')) return;
       el.addEventListener('click', ()=>{
@@ -428,39 +292,53 @@
     return res;
   }
 
-  // 1) Shift register - Updated to use calendar
-  document.getElementById('send1').onclick = async ()=>{
+  // 1) Shift register
+  document.getElementById('send1').onclick = async () => {
+    const date1 = document.getElementById('date1_1').value;
+    const date2 = document.getElementById('date1_2').value;
     const note = document.getElementById('note1').value;
     const el = document.getElementById('msg1');
     const btn = document.getElementById('send1');
-    
-    if(selectedDates1.length === 0){ 
-      el.innerHTML = '<span class="err">Chọn ít nhất một ngày</span>'; 
-      return; 
+
+    const selectedDates = [];
+    if (date1) selectedDates.push(date1);
+    if (date2) selectedDates.push(date2);
+
+    if (selectedDates.length === 0) {
+        el.innerHTML = '<span class="err">Vui lòng chọn ít nhất một ngày trực</span>';
+        return;
     }
-    
-    // Validate all selected dates are weekends
-    const invalidDates = selectedDates1.filter(date => !isWeekend(date));
-    if(invalidDates.length > 0){
-      el.innerHTML = '<span class="err">❌ Phải chọn Thứ 7 hoặc Chủ nhật</span>';
-      return;
+
+    let allDaysAreWeekends = true;
+    for (const dateStr of selectedDates) {
+        // Appending T00:00:00 avoids timezone issues where new Date('YYYY-MM-DD') might be interpreted as UTC and roll back a day.
+        const day = new Date(dateStr + 'T00:00:00').getDay();
+        if (day !== 6 && day !== 0) { // 6 = Saturday, 0 = Sunday
+            allDaysAreWeekends = false;
+            break;
+        }
     }
-    
+
+    if (!allDaysAreWeekends) {
+        el.innerHTML = '<span class="err">Phải đăng ký ngày thứ 7 hoặc chủ nhật</span>';
+        return;
+    }
+
     btn.disabled = true;
     btn.textContent = '⏳ Đang xử lý...';
-    try{
-      // Submit each date separately or as a batch
-      for(const date of selectedDates1){
-        await postToWebhook({ action:'shift', shiftDate:date, shiftType:'Day', note });
-      }
-      el.innerHTML = `<span class="ok">✅ Đăng ký lịch trực thành công cho ${selectedDates1.length} ngày</span>`;
-      selectedDates1 = [];
-      renderCalendar1();
-    }catch(e){ 
-      el.innerHTML = '<span class="err">❌ ' + e.message + '</span>'; 
+    try {
+        await postToWebhook({
+            action: 'shift',
+            shiftDates: selectedDates.join(','),
+            shiftType: 'Day',
+            note: note
+        });
+        el.innerHTML = '<span class="ok">✅ Đăng ký lịch trực thành công</span>';
+    } catch (e) {
+        el.innerHTML = '<span class="err">❌ ' + e.message + '</span>';
     } finally {
-      btn.disabled = false;
-      btn.textContent = 'Đăng ký lịch trực';
+        btn.disabled = false;
+        btn.textContent = 'Đăng ký lịch trực';
     }
   };
 
