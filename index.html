@@ -4,42 +4,44 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <script src="https://accounts.google.com/gsi/client" async></script>
-  <title>Chấm công</title>
+  <title>Chấm công - Đăng ký lịch trực</title>
   <style>
-    body{font-family:system-ui;max-width:900px;margin:20px auto;padding:0 16px}
-    fieldset{border:2px solid #2196F3;border-radius:12px;padding:20px;margin:20px 0;background:#f8f9fa}
-    legend{color:#2196F3;font-weight:700;font-size:18px}
-    .form-group{margin:12px 0}
-    label{display:block;margin:6px 0 4px;font-weight:500}
-    input,select,button{width:100%;padding:10px;border:1px solid #ccc;border-radius:8px;font-size:14px}
-    button{background:#2196F3;color:#fff;border:none;cursor:pointer;font-weight:700}
-    button:hover{background:#1976D2}
-    button:disabled{background:#aaa;cursor:not-allowed}
+    :root{--pri:#2196F3;--pri2:#1976D2;}
+    *{box-sizing:border-box}
+    body{font-family:system-ui,Segoe UI,Roboto,Arial;max-width:920px;margin:24px auto;padding:0 16px;background:#fafafa}
+    h1{color:var(--pri);text-align:center}
+    fieldset{border:2px solid var(--pri);border-radius:16px;padding:18px 18px 22px;background:#fff}
+    legend{color:var(--pri);font-weight:700;padding:0 6px}
     .hidden{display:none}
-    .ok{color:green;font-weight:700}.err{color:#b00020;font-weight:700}
-    #me{background:#e8f5e8;padding:10px;border-radius:8px;margin:12px 0}
+    .ok{color:#2e7d32;font-weight:700}
+    .err{color:#b00020;font-weight:700}
+    #me{background:#e8f5e8;border:1px solid #c8e6c9;border-radius:10px;padding:10px;margin:12px 0}
+    button{display:inline-flex;gap:8px;align-items:center;padding:10px 14px;border:none;border-radius:10px;background:var(--pri);color:#fff;font-weight:700;cursor:pointer}
+    button:hover{background:var(--pri2)}
+    button:disabled{background:#9e9e9e;cursor:not-allowed}
+    input[type="text"]{width:100%;padding:10px;border:1px solid #ccc;border-radius:10px}
 
     /* Calendar */
-    .calendar-container{background:#fff;border:1px solid #ddd;border-radius:10px;padding:12px}
-    .month-year-selector{display:flex;gap:12px;margin-bottom:12px}
-    .month-year-selector select{width:auto;flex:1}
-    .calendar-header{position:relative;margin-bottom:8px;text-align:center}
-    .calendar-title{font-weight:700}
-    .weekday-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:2px;margin-top:10px}
-    .weekday{background:#f5f5f5;padding:6px 0;font-weight:700;font-size:12px;text-align:center}
-    .calendar-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:2px;text-align:center}
-    .calendar-day{padding:8px;border:1px solid #eee;background:#fff;cursor:pointer;min-height:36px;display:flex;align-items:center;justify-content:center;font-size:13px}
-    .calendar-day.other-month{background:#fafafa;color:#bbb;cursor:default}
-    .calendar-day.not-weekend{background:#f5f5f5;color:#999;cursor:not-allowed}
-    .calendar-day:hover:not(.other-month):not(.not-weekend){background:#e3f2fd}
-    .calendar-day.selected{background:#2196F3;color:#fff;border-color:#1976D2}
-    .selected-dates{margin-top:8px;font-size:12px;color:#555}
-    .selected-dates span{background:#e3f2fd;padding:2px 6px;border-radius:4px;margin:2px;display:inline-block}
-    @media (max-width:600px){ .month-year-selector{flex-direction:column} }
+    .cal{user-select:none;background:#fff;border:1px solid #e0e0e0;border-radius:14px;padding:12px}
+    .cal-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+    .cal-title{font-weight:800}
+    .nav-btn{background:transparent;border:1px solid #ddd;border-radius:8px;padding:6px 10px;color:#444;cursor:pointer}
+    .nav-btn:hover{background:#f1f5ff}
+    .weekday{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin:6px 0 8px}
+    .weekday div{font-weight:600;text-align:center;color:#616161}
+    .grid{display:grid;grid-template-columns:repeat(7,1fr);gap:4px}
+    .cell{height:42px;border:1px solid #eee;border-radius:8px;display:flex;align-items:center;justify-content:center;background:#fff;color:#424242}
+    .cell.muted{background:#fafafa;color:#bdbdbd}
+    .cell.day{cursor:not-allowed;background:#f5f5f5;color:#9e9e9e}
+    .cell.weekend{cursor:pointer;background:#fff;color:#424242}
+    .cell.weekend:hover{background:#e3f2fd}
+    .cell.selected{background:var(--pri);color:#fff;border-color:var(--pri2)}
+    .selected-badge{margin-top:8px;font-size:13px;color:#555}
+    .selected-badge span{background:#e3f2fd;border:1px solid #bbdefb;padding:2px 6px;border-radius:6px;margin:2px;display:inline-block}
   </style>
 </head>
 <body>
-  <h1 style="text-align:center;color:#2196F3">Hệ thống chấm công</h1>
+  <h1>Hệ thống chấm công</h1>
 
   <div id="g_id_onload"
        data-client_id="884894188365-cg2m31hli0pq1qp10dv7hnf4hshjju22.apps.googleusercontent.com"
@@ -47,245 +49,152 @@
   <div id="btn" style="text-align:center;margin:16px 0"></div>
   <p id="me" class="hidden"></p>
 
-  <div id="forms" class="hidden">
-    <fieldset>
-      <legend>📅 Đăng ký lịch trực (Thứ 7 / Chủ nhật)</legend>
-      <div class="form-group">
-        <label>Chọn tháng/năm</label>
-        <div class="month-year-selector">
-          <select id="monthSelect1">
-            <option value="0">Tháng 1</option>
-            <option value="1">Tháng 2</option>
-            <option value="2">Tháng 3</option>
-            <option value="3">Tháng 4</option>
-            <option value="4">Tháng 5</option>
-            <option value="5">Tháng 6</option>
-            <option value="6">Tháng 7</option>
-            <option value="7">Tháng 8</option>
-            <option value="8">Tháng 9</option>
-            <option value="9">Tháng 10</option>
-            <option value="10">Tháng 11</option>
-            <option value="11">Tháng 12</option>
-          </select>
-          <select id="yearSelect1"></select>
-        </div>
+  <fieldset id="formBox" class="hidden">
+    <legend>📅 Đăng ký lịch trực (chỉ Thứ 7 / Chủ nhật)</legend>
+
+    <div class="cal">
+      <div class="cal-header">
+        <button id="prev" class="nav-btn">◀</button>
+        <div class="cal-title" id="calTitle">Tháng ? Năm ?</div>
+        <button id="next" class="nav-btn">▶</button>
       </div>
-      <div class="form-group">
-        <label>Chọn ngày trực (chỉ Thứ 7 hoặc Chủ nhật)</label>
-        <div class="calendar-container">
-          <div class="calendar-header">
-            <div class="calendar-title" id="currentMonth1">Tháng ?</div>
-          </div>
-          <div class="weekday-grid" id="weekday1"></div>
-          <div class="calendar-grid" id="calendar1"></div>
-          <div class="selected-dates" id="selectedDates1">Chưa chọn ngày nào</div>
-        </div>
+      <div class="weekday">
+        <div>Su</div><div>Mo</div><div>Tu</div><div>We</div><div>Th</div><div>Fr</div><div>Sa</div>
       </div>
-      <div class="form-group">
-        <label>Ghi chú</label>
-        <input id="note1" placeholder="Tùy chọn">
-      </div>
-      <button id="send1">Đăng ký lịch trực</button>
-      <div id="msg1"></div>
-    </fieldset>
-  </div>
+      <div class="grid" id="grid"></div>
+      <div class="selected-badge" id="badge">Chưa chọn ngày nào</div>
+    </div>
+
+    <div style="margin-top:12px">
+      <label for="note1" style="display:block;margin:6px 0 4px;font-weight:500">Ghi chú</label>
+      <input id="note1" type="text" placeholder="Tùy chọn">
+    </div>
+
+    <div style="margin-top:14px">
+      <button id="send">Đăng ký lịch trực</button>
+      <span id="msg" style="margin-left:10px"></span>
+    </div>
+  </fieldset>
 
 <script>
-  // ==== CONFIG ====
-  const WEBHOOK_URL = "https://b9a42704daa1.ngrok-free.app/webhook-test/portal/submit";
-  // ================
+// === CONFIG: dùng đúng webhook gốc của bạn ===
+const WEBHOOK_URL = "https://b9a42704daa1.ngrok-free.app/webhook-test/670963d4-9a84-48c7-ad09-9ff064830929";
 
-  let idToken = null;
-  let userEmail = null;
-  let selectedDates1 = []; // Shift registration dates
-  let currentDate1 = new Date(); // Shift calendar
+let idToken=null,userEmail=null;
+let viewDate=new Date();       // tháng đang hiển thị
+let selected=new Set();        // các ngày đã chọn (YYYY-MM-DD)
 
-  function parseJWT(p){
-    p=p.replace(/-/g,'+').replace(/_/g,'/');
-    return JSON.parse(atob(p.padEnd(p.length+ (4-p.length%4)%4,'=')))
+function parseJWT(p){p=p.replace(/-/g,'+').replace(/_/g,'/');return JSON.parse(atob(p.padEnd(p.length+(4-p.length%4)%4,'=')))}
+function ymd(y,m,d){return `${y}-${String(m+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`}
+function isWeekendStr(ds){const t=new Date(ds+'T00:00:00');return [0,6].includes(t.getDay());}
+
+function onGoogle(r){
+  idToken=r.credential;
+  const payload=parseJWT(idToken.split('.')[1]||'');
+  userEmail=payload.email;
+  document.getElementById('me').classList.remove('hidden');
+  document.getElementById('me').innerHTML=`Đăng nhập: <b>${userEmail}</b>`;
+  document.getElementById('formBox').classList.remove('hidden');
+  render();
+}
+window.onload=()=>{
+  google.accounts.id.initialize({
+    client_id:document.getElementById('g_id_onload').dataset.client_id,
+    callback:onGoogle
+  });
+  google.accounts.id.renderButton(document.getElementById('btn'),{theme:"outline",size:"large",text:"signin_with"});
+  document.getElementById('prev').onclick=()=>{viewDate.setMonth(viewDate.getMonth()-1);render();}
+  document.getElementById('next').onclick=()=>{viewDate.setMonth(viewDate.getMonth()+1);render();}
+  document.getElementById('send').onclick=submitAll;
+};
+
+function render(){
+  const y=viewDate.getFullYear(), m=viewDate.getMonth();
+  document.getElementById('calTitle').textContent=new Intl.DateTimeFormat('en-US',{month:'long',year:'numeric'}).format(viewDate);
+
+  const first=new Date(y,m,1);
+  const startIdx=first.getDay(); // 0..6 (Sun..Sat)
+  const daysInMonth=new Date(y,m+1,0).getDate();
+  const prevMonthDays=new Date(y,m,0).getDate();
+
+  const grid=document.getElementById('grid');
+  grid.innerHTML='';
+
+  // ngày của tháng trước cho đủ vị trí
+  for(let i=startIdx-1;i>=0;i--){
+    const d=prevMonthDays-i;
+    const cell=document.createElement('div');
+    cell.className='cell muted';
+    cell.textContent=d;
+    grid.appendChild(cell);
   }
-
-  function onGoogle(r){
-    idToken = r.credential;
-    const payload = parseJWT(idToken.split('.')[1]||'');
-    userEmail = payload.email;
-    document.getElementById('me').classList.remove('hidden');
-    document.getElementById('me').innerHTML = `Đăng nhập: <b>${userEmail}</b>`;
-    document.getElementById('forms').classList.remove('hidden');
-
-    initYearSelector1();
-    renderCalendar1();
+  // ngày của tháng hiện tại
+  for(let d=1;d<=daysInMonth;d++){
+    const ds=ymd(y,m,d);
+    const isWeekend=isWeekendStr(ds);
+    const cell=document.createElement('div');
+    cell.className='cell '+(isWeekend?'weekend':'day')+(selected.has(ds)?' selected':'');
+    cell.textContent=d;
+    if(isWeekend){
+      cell.onclick=()=>{
+        if(selected.has(ds)){selected.delete(ds);cell.classList.remove('selected');}
+        else{selected.add(ds);cell.classList.add('selected');}
+        updateBadge();
+      };
+    }
+    grid.appendChild(cell);
   }
-
-  window.onload = ()=>{
-    google.accounts.id.initialize({
-      client_id: document.getElementById('g_id_onload').dataset.client_id,
-      callback: onGoogle
-    });
-    google.accounts.id.renderButton(document.getElementById('btn'), { theme:"outline", size:"large", text:"signin_with" });
-  };
-
-  // ====== Helper: Check if date is weekend ======
-  function isWeekend(dateStr){
-    const date = new Date(dateStr + 'T00:00:00');
-    const day = date.getDay();
-    return day === 0 || day === 6; // 0=Sunday, 6=Saturday
+  // thêm ngày của tháng sau để đủ hàng
+  while(grid.children.length%7!==0){
+    const cell=document.createElement('div');
+    cell.className='cell muted';
+    cell.textContent='';
+    grid.appendChild(cell);
   }
+  updateBadge();
+}
 
-  // ====== Initialize Year Selector for Shift Registration ======
-  function initYearSelector1(){
-    const yearSelect = document.getElementById('yearSelect1');
-    const currentYear = new Date().getFullYear();
-    
-    for(let y = currentYear - 2; y <= currentYear + 2; y++){
-      const opt = document.createElement('option');
-      opt.value = y;
-      opt.textContent = `Năm ${y}`;
-      if(y === currentYear) opt.selected = true;
-      yearSelect.appendChild(opt);
-    }
+function updateBadge(){
+  const b=document.getElementById('badge');
+  if(!selected.size){b.textContent='Chưa chọn ngày nào';return;}
+  const arr=[...selected].sort();
+  b.innerHTML='Đã chọn: '+arr.map(s=>{
+    const [Y,M,D]=s.split('-');return `<span>${D}/${M}/${Y}</span>`;
+  }).join(' ');
+}
 
-    const monthSelect = document.getElementById('monthSelect1');
-    monthSelect.value = new Date().getMonth();
+// Gửi 1 request cho mỗi ngày để n8n ghi nhận từng shiftDate
+async function postOne(date, note){
+  const fd=new FormData();
+  fd.append('id_token',idToken);
+  fd.append('employeeId',userEmail);
+  fd.append('action','shift');
+  fd.append('shiftDate',date);
+  fd.append('shiftType','Day');
+  fd.append('note',note||'');
+  const res=await fetch(WEBHOOK_URL,{method:'POST',body:fd});
+  if(!res.ok) throw new Error(await res.text()||res.statusText);
+  return true;
+}
 
-    monthSelect.addEventListener('change', onMonthYearChange1);
-    yearSelect.addEventListener('change', onMonthYearChange1);
+async function submitAll(){
+  const msg=document.getElementById('msg'); const btn=document.getElementById('send');
+  if(!selected.size){msg.innerHTML='<span class="err">Chọn ít nhất một ngày</span>';return;}
+  btn.disabled=true; btn.textContent='⏳ Đang gửi...'; msg.textContent='';
+  const note=document.getElementById('note1').value;
+  try{
+    const arr=[...selected].sort();
+    const results=await Promise.allSettled(arr.map(d=>postOne(d,note)));
+    const ok=results.filter(r=>r.status==='fulfilled').length;
+    const fail=results.length-ok;
+    msg.innerHTML = (ok?`<span class="ok">✅ Thành công ${ok}/${results.length} ngày.</span>`:'') + (fail?` <span class="err">❌ Lỗi ${fail} ngày.</span>`:'');
+    if(fail===0){ selected.clear(); render(); }
+  }catch(e){
+    msg.innerHTML=`<span class="err">❌ ${e.message}</span>`;
+  }finally{
+    btn.disabled=false; btn.textContent='Đăng ký lịch trực';
   }
-
-  function onMonthYearChange1(){
-    const month = parseInt(document.getElementById('monthSelect1').value);
-    const year = parseInt(document.getElementById('yearSelect1').value);
-    currentDate1 = new Date(year, month, 1);
-    selectedDates1 = [];
-    renderCalendar1();
-  }
-
-  // ====== Calendar for Shift Registration (weekends only) ======
-  function renderCalendar1(){
-    const year = currentDate1.getFullYear();
-    const month = currentDate1.getMonth();
-
-    document.getElementById('monthSelect1').value = month;
-    document.getElementById('yearSelect1').value = year;
-
-    const monthNames = ["Tháng 1","Tháng 2","Tháng 3","Tháng 4","Tháng 5","Tháng 6","Tháng 7","Tháng 8","Tháng 9","Tháng 10","Tháng 11","Tháng 12"];
-    document.getElementById('currentMonth1').textContent = `${monthNames[month]} ${year}`;
-
-    const dayHeaders = ['CN','T2','T3','T4','T5','T6','T7'];
-    document.getElementById('weekday1').innerHTML = dayHeaders.map(d=>`<div class="weekday">${d}</div>`).join('');
-
-    const firstDay = new Date(year, month, 1).getDay();
-    const daysInMonth = new Date(year, month+1, 0).getDate();
-    const daysInPrevMonth = new Date(year, month, 0).getDate();
-
-    let html = '';
-    
-    // Previous month days
-    for(let i = firstDay - 1; i >= 0; i--){
-      const d = daysInPrevMonth - i;
-      html += `<div class="calendar-day other-month">${d}</div>`;
-    }
-    
-    // Current month days
-    for(let d=1; d<=daysInMonth; d++){
-      const dateStr = `${year}-${String(month+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
-      const isWeekendDay = isWeekend(dateStr);
-      const selected = selectedDates1.includes(dateStr) ? 'selected':'';
-      const notWeekendClass = !isWeekendDay ? 'not-weekend' : '';
-      html += `<div class="calendar-day ${selected} ${notWeekendClass}" data-date="${dateStr}">${d}</div>`;
-    }
-    
-    // Next month days
-    const totalCells = Math.ceil((firstDay + daysInMonth)/7)*7;
-    const remain = totalCells - (firstDay + daysInMonth);
-    for(let d=1; d<=remain; d++){
-      html += `<div class="calendar-day other-month">${d}</div>`;
-    }
-    
-    document.getElementById('calendar1').innerHTML = html;
-
-    // Add click handlers only to weekend days
-    document.querySelectorAll('#calendar1 .calendar-day').forEach(el=>{
-      if(el.classList.contains('other-month') || el.classList.contains('not-weekend')) return;
-      el.addEventListener('click', ()=>{
-        const date = el.getAttribute('data-date');
-        const idx = selectedDates1.indexOf(date);
-        if(idx>=0){ 
-          selectedDates1.splice(idx,1); 
-          el.classList.remove('selected'); 
-        }
-        else { 
-          selectedDates1.push(date); 
-          el.classList.add('selected'); 
-        }
-        updateSelectedDatesDisplay1();
-      });
-    });
-    updateSelectedDatesDisplay1();
-  }
-
-  function updateSelectedDatesDisplay1(){
-    const box = document.getElementById('selectedDates1');
-    if(selectedDates1.length===0){ 
-      box.textContent = 'Chưa chọn ngày nào'; 
-      return; 
-    }
-    const s = selectedDates1.slice().sort().map(dt=>{
-      const [y,m,d] = dt.split('-'); 
-      return `<span>${d}/${m}/${y}</span>`;
-    }).join(' ');
-    box.innerHTML = `Đã chọn: ${s}`;
-  }
-
-  // ====== helpers ======
-  async function postToWebhook(payload){
-    const fd = new FormData();
-    fd.append('id_token', idToken);
-    fd.append('employeeId', userEmail);
-    Object.entries(payload).forEach(([k,v])=> fd.append(k, v ?? ''));
-    const res = await fetch(WEBHOOK_URL, { method:'POST', body: fd });
-    if(!res.ok){ throw new Error(await res.text() || res.statusText); }
-    return res;
-  }
-
-  // 1) Shift register - send one request PER date so n8n records each date
-  document.getElementById('send1').onclick = async ()=>{
-    const note = document.getElementById('note1').value;
-    const el = document.getElementById('msg1');
-    const btn = document.getElementById('send1');
-    
-    if(selectedDates1.length === 0){ 
-      el.innerHTML = '<span class="err">Chọn ít nhất một ngày</span>'; 
-      return; 
-    }
-    const invalidDates = selectedDates1.filter(date => !isWeekend(date));
-    if(invalidDates.length > 0){
-      el.innerHTML = '<span class="err">❌ Phải chọn Thứ 7 hoặc Chủ nhật</span>';
-      return;
-    }
-    
-    btn.disabled = true;
-    btn.textContent = '⏳ Đang xử lý...';
-    try{
-      const results = await Promise.allSettled(
-        selectedDates1.map(date => postToWebhook({ action:'shift', shiftDate:date, shiftType:'Day', note }))
-      );
-      const ok = results.filter(r=>r.status==='fulfilled').length;
-      const fail = results.length - ok;
-      if (ok>0) {
-        el.innerHTML = `<span class="ok">✅ Đăng ký thành công ${ok}/${results.length} ngày</span>` + (fail?`<div class="err">❌ Lỗi ${fail} ngày</div>`:'');
-      } else {
-        el.innerHTML = `<span class="err">❌ Gửi thất bại</span>`;
-      }
-      // clear selection if all succeeded
-      if (fail === 0){ selectedDates1 = []; renderCalendar1(); }
-    }catch(e){ 
-      el.innerHTML = '<span class="err">❌ ' + e.message + '</span>'; 
-    } finally {
-      btn.disabled = false;
-      btn.textContent = 'Đăng ký lịch trực';
-    }
-  };
+}
 </script>
 </body>
 </html>
