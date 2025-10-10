@@ -1,0 +1,366 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <script src="https://accounts.google.com/gsi/client" async></script>
+  <title>Chấm công</title>
+  <style>
+    body{font-family:system-ui;max-width:900px;margin:20px auto;padding:0 16px}
+    fieldset{border:2px solid #2196F3;border-radius:12px;padding:20px;margin:20px 0;background:#f8f9fa}
+    legend{color:#2196F3;font-weight:700;font-size:18px}
+    .form-group{margin:12px 0}
+    label{display:block;margin:6px 0 4px;font-weight:500}
+    input,select,button{width:100%;padding:10px;border:1px solid #ccc;border-radius:8px;font-size:14px}
+    button{background:#2196F3;color:#fff;border:none;cursor:pointer;font-weight:700}
+    button:hover{background:#1976D2}
+    button:disabled{background:#aaa;cursor:not-allowed}
+    .hidden{display:none}
+    .ok{color:green;font-weight:700}.err{color:#b00020;font-weight:700}
+    #me{background:#e8f5e8;padding:10px;border-radius:8px;margin:12px 0}
+
+    /* Calendar */
+    .calendar-container{background:#fff;border:1px solid #ddd;border-radius:10px;padding:12px}
+    .month-year-selector{display:flex;gap:12px;margin-bottom:12px}
+    .month-year-selector select{width:auto;flex:1}
+    .calendar-header{position:relative;margin-bottom:8px;text-align:center}
+    .calendar-title{font-weight:700}
+    .weekday-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:2px;margin-top:10px}
+    .weekday{background:#f5f5f5;padding:6px 0;font-weight:700;font-size:12px;text-align:center}
+    .calendar-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:2px;text-align:center}
+    .calendar-day{padding:8px;border:1px solid #eee;background:#fff;cursor:pointer;min-height:36px;display:flex;align-items:center;justify-content:center;font-size:13px}
+    .calendar-day.other-month{background:#fafafa;color:#bbb;cursor:default}
+    .calendar-day:hover:not(.other-month){background:#e3f2fd}
+    .calendar-day.selected{background:#2196F3;color:#fff;border-color:#1976D2}
+    .selected-dates{margin-top:8px;font-size:12px;color:#555}
+    .selected-dates span{background:#e3f2fd;padding:2px 6px;border-radius:4px;margin:2px;display:inline-block}
+    @media (max-width:600px){ .month-year-selector{flex-direction:column} }
+  </style>
+</head>
+<body>
+  <h1 style="text-align:center;color:#2196F3">Hệ thống chấm công</h1>
+
+  <div id="g_id_onload"
+       data-client_id="884894188365-cg2m31hli0pq1qp10dv7hnf4hshjju22.apps.googleusercontent.com"
+       data-callback="onGoogle"></div>
+  <div id="btn" style="text-align:center;margin:16px 0"></div>
+  <p id="me" class="hidden"></p>
+
+  <div id="forms" class="hidden">
+    <fieldset>
+      <legend>📅 Đăng ký lịch trực</legend>
+      <div class="form-group">
+        <label>Ngày trực</label>
+        <input id="date1" type="date">
+      </div>
+      <div class="form-group">
+        <label>Ghi chú</label>
+        <input id="note1" placeholder="Tùy chọn">
+      </div>
+      <button id="send1">Đăng ký lịch trực</button>
+      <div id="msg1"></div>
+    </fieldset>
+
+    <fieldset>
+      <legend>⏰ Chấm công ngày thường</legend>
+      <div class="form-group">
+        <label>Chọn tháng/năm</label>
+        <div class="month-year-selector">
+          <select id="monthSelect">
+            <option value="0">Tháng 1</option>
+            <option value="1">Tháng 2</option>
+            <option value="2">Tháng 3</option>
+            <option value="3">Tháng 4</option>
+            <option value="4">Tháng 5</option>
+            <option value="5">Tháng 6</option>
+            <option value="6">Tháng 7</option>
+            <option value="7">Tháng 8</option>
+            <option value="8">Tháng 9</option>
+            <option value="9">Tháng 10</option>
+            <option value="10">Tháng 11</option>
+            <option value="11">Tháng 12</option>
+          </select>
+          <select id="yearSelect"></select>
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Chọn ngày (có thể chọn nhiều)</label>
+        <div class="calendar-container">
+          <div class="calendar-header">
+            <div class="calendar-title" id="currentMonth2">Tháng ?</div>
+          </div>
+          <div class="weekday-grid" id="weekday2"></div>
+          <div class="calendar-grid" id="calendar2"></div>
+          <div class="selected-dates" id="selectedDates2">Chưa chọn ngày nào</div>
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Ghi chú</label>
+        <input id="note2" placeholder="Tùy chọn">
+      </div>
+      <button id="send2">Ghi nhận chấm công</button>
+      <div id="msg2"></div>
+    </fieldset>
+
+    <fieldset>
+      <legend>🕐 Chấm công làm thêm</legend>
+      <div class="form-group">
+        <label>Ngày làm thêm</label>
+        <input id="date3" type="date">
+      </div>
+      <div class="form-group" style="display:flex;gap:12px">
+        <div style="flex:1">
+          <label>Bắt đầu</label>
+          <input id="startTime3" type="time">
+        </div>
+        <div style="flex:1">
+          <label>Kết thúc</label>
+          <input id="endTime3" type="time">
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Ghi chú</label>
+        <input id="note3" placeholder="Mô tả công việc làm thêm">
+      </div>
+      <div class="form-group">
+        <label>Ảnh minh chứng (bắt buộc)</label>
+        <input id="pic3" type="file" accept="image/*" required>
+      </div>
+      <button id="send3">Ghi nhận làm thêm</button>
+      <div id="msg3"></div>
+    </fieldset>
+  </div>
+
+<script>
+  // ==== CONFIG ====
+  const WEBHOOK_URL = "https://b9a42704daa1.ngrok-free.app/webhook/portal/submit";
+  // ================
+
+  let idToken = null;
+  let userEmail = null;
+  let selectedDates2 = [];
+  let currentDate2 = new Date();
+
+  function parseJWT(p){
+    p=p.replace(/-/g,'+').replace(/_/g,'/');
+    return JSON.parse(atob(p.padEnd(p.length+ (4-p.length%4)%4,'=')))
+  }
+
+  function onGoogle(r){
+    idToken = r.credential;
+    const payload = parseJWT(idToken.split('.')[1]||'');
+    userEmail = payload.email;
+    document.getElementById('me').classList.remove('hidden');
+    document.getElementById('me').innerHTML = `Đăng nhập: <b>${userEmail}</b>`;
+    document.getElementById('forms').classList.remove('hidden');
+
+    const today = new Date().toISOString().split('T')[0];
+    document.getElementById('date1').value = today;
+    document.getElementById('date3').value = today;
+
+    initYearSelector();
+    renderCalendar2();
+  }
+
+  window.onload = ()=>{
+    google.accounts.id.initialize({
+      client_id: document.getElementById('g_id_onload').dataset.client_id,
+      callback: onGoogle
+    });
+    google.accounts.id.renderButton(document.getElementById('btn'), { theme:"outline", size:"large", text:"signin_with" });
+  };
+
+  // ====== Initialize Year Selector ======
+  function initYearSelector(){
+    const yearSelect = document.getElementById('yearSelect');
+    const currentYear = new Date().getFullYear();
+    
+    // Tạo options từ năm hiện tại - 2 đến năm hiện tại + 2
+    for(let y = currentYear - 2; y <= currentYear + 2; y++){
+      const opt = document.createElement('option');
+      opt.value = y;
+      opt.textContent = `Năm ${y}`;
+      if(y === currentYear) opt.selected = true;
+      yearSelect.appendChild(opt);
+    }
+
+    // Set month selector to current month
+    const monthSelect = document.getElementById('monthSelect');
+    monthSelect.value = new Date().getMonth();
+
+    // Add event listeners
+    monthSelect.addEventListener('change', onMonthYearChange);
+    yearSelect.addEventListener('change', onMonthYearChange);
+  }
+
+  function onMonthYearChange(){
+    const month = parseInt(document.getElementById('monthSelect').value);
+    const year = parseInt(document.getElementById('yearSelect').value);
+    currentDate2 = new Date(year, month, 1);
+    selectedDates2 = []; // Clear selections when changing month
+    renderCalendar2();
+  }
+
+  // ====== Calendar (attendance) ======
+  function renderCalendar2(){
+    const year = currentDate2.getFullYear();
+    const month = currentDate2.getMonth();
+
+    // Update selectors to match current date
+    document.getElementById('monthSelect').value = month;
+    document.getElementById('yearSelect').value = year;
+
+    const monthNames = ["Tháng 1","Tháng 2","Tháng 3","Tháng 4","Tháng 5","Tháng 6","Tháng 7","Tháng 8","Tháng 9","Tháng 10","Tháng 11","Tháng 12"];
+    document.getElementById('currentMonth2').textContent = `${monthNames[month]} ${year}`;
+
+    const dayHeaders = ['CN','T2','T3','T4','T5','T6','T7'];
+    document.getElementById('weekday2').innerHTML = dayHeaders.map(d=>`<div class="weekday">${d}</div>`).join('');
+
+    const firstDay = new Date(year, month, 1).getDay();
+    const daysInMonth = new Date(year, month+1, 0).getDate();
+    const daysInPrevMonth = new Date(year, month, 0).getDate();
+
+    let html = '';
+    
+    // Previous month days
+    for(let i = firstDay - 1; i >= 0; i--){
+      const d = daysInPrevMonth - i;
+      html += `<div class="calendar-day other-month">${d}</div>`;
+    }
+    
+    // Current month days
+    for(let d=1; d<=daysInMonth; d++){
+      const dateStr = `${year}-${String(month+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+      const selected = selectedDates2.includes(dateStr) ? 'selected':'';
+      html += `<div class="calendar-day ${selected}" data-date="${dateStr}">${d}</div>`;
+    }
+    
+    // Next month days to fill the grid
+    const totalCells = Math.ceil((firstDay + daysInMonth)/7)*7;
+    const remain = totalCells - (firstDay + daysInMonth);
+    for(let d=1; d<=remain; d++){
+      html += `<div class="calendar-day other-month">${d}</div>`;
+    }
+    
+    document.getElementById('calendar2').innerHTML = html;
+
+    // Add click handlers only to current month days
+    document.querySelectorAll('#calendar2 .calendar-day').forEach(el=>{
+      if(el.classList.contains('other-month')) return;
+      el.addEventListener('click', ()=>{
+        const date = el.getAttribute('data-date');
+        const idx = selectedDates2.indexOf(date);
+        if(idx>=0){ 
+          selectedDates2.splice(idx,1); 
+          el.classList.remove('selected'); 
+        }
+        else { 
+          selectedDates2.push(date); 
+          el.classList.add('selected'); 
+        }
+        updateSelectedDatesDisplay2();
+      });
+    });
+    updateSelectedDatesDisplay2();
+  }
+
+  function updateSelectedDatesDisplay2(){
+    const box = document.getElementById('selectedDates2');
+    if(selectedDates2.length===0){ 
+      box.textContent = 'Chưa chọn ngày nào'; 
+      return; 
+    }
+    const s = selectedDates2.slice().sort().map(dt=>{
+      const [y,m,d] = dt.split('-'); 
+      return `<span>${d}/${m}/${y}</span>`;
+    }).join(' ');
+    box.innerHTML = `Đã chọn: ${s}`;
+  }
+
+  // ====== helpers ======
+  async function postToWebhook(payload, file){
+    const fd = new FormData();
+    fd.append('id_token', idToken);
+    fd.append('employeeId', userEmail);
+    Object.entries(payload).forEach(([k,v])=> fd.append(k, v ?? ''));
+    if(file){ fd.append('photo', file, file.name); }
+    const res = await fetch(WEBHOOK_URL, { method:'POST', body: fd });
+    if(!res.ok){ throw new Error(await res.text() || res.statusText); }
+    return res;
+  }
+
+  // 1) Shift register
+  document.getElementById('send1').onclick = async ()=>{
+    const date = document.getElementById('date1').value;
+    const note = document.getElementById('note1').value;
+    const el = document.getElementById('msg1');
+    const btn = document.getElementById('send1');
+    if(!date){ el.innerHTML = '<span class="err">Chọn ngày trực</span>'; return; }
+    
+    btn.disabled = true;
+    btn.textContent = '⏳ Đang xử lý...';
+    try{
+      await postToWebhook({ action:'shift', shiftDate:date, shiftType:'Day', note });
+      el.innerHTML = '<span class="ok">✅ Đăng ký lịch trực thành công</span>';
+    }catch(e){ 
+      el.innerHTML = '<span class="err">❌ ' + e.message + '</span>'; 
+    } finally {
+      btn.disabled = false;
+      btn.textContent = 'Đăng ký lịch trực';
+    }
+  };
+
+  // 2) Attendance
+  document.getElementById('send2').onclick = async ()=>{
+    const note = document.getElementById('note2').value;
+    const el = document.getElementById('msg2');
+    const btn = document.getElementById('send2');
+    if(selectedDates2.length === 0){ el.innerHTML = '<span class="err">Chọn ít nhất một ngày</span>'; return; }
+    
+    btn.disabled = true;
+    btn.textContent = '⏳ Đang xử lý...';
+    try {
+      const datesString = selectedDates2.join(',');
+      await postToWebhook({
+        action: 'attendance',
+        dates: datesString,
+        note: note
+      });
+      el.innerHTML = `<span class="ok">✅ Chấm công thành công cho ${selectedDates2.length} ngày</span>`;
+      selectedDates2 = [];
+      renderCalendar2();
+    } catch (e) {
+      el.innerHTML = `<span class="err">❌ ${e.message}</span>`;
+    } finally {
+      btn.disabled = false;
+      btn.textContent = 'Ghi nhận chấm công';
+    }
+  };
+
+  // 3) OT
+  document.getElementById('send3').onclick = async ()=>{
+    const date = document.getElementById('date3').value;
+    const start = document.getElementById('startTime3').value;
+    const end = document.getElementById('endTime3').value;
+    const note = document.getElementById('note3').value;
+    const photo = document.getElementById('pic3').files[0];
+    const el = document.getElementById('msg3');
+    const btn = document.getElementById('send3');
+    if(!date || !start || !end || !photo){ el.innerHTML = '<span class="err">Nhập đủ thông tin & ảnh</span>'; return; }
+    if(start>=end){ el.innerHTML = '<span class="err">Bắt đầu phải nhỏ hơn kết thúc</span>'; return; }
+    
+    btn.disabled = true;
+    btn.textContent = '⏳ Đang xử lý...';
+    try{
+      await postToWebhook({ action:'ot', date, start, end, reason: note }, photo);
+      el.innerHTML = '<span class="ok">✅ Ghi nhận làm thêm thành công</span>';
+    }catch(e){ 
+      el.innerHTML = '<span class="err">❌ ' + e.message + '</span>'; 
+    } finally {
+      btn.disabled = false;
+      btn.textContent = 'Ghi nhận làm thêm';
+    }
+  };
+</script>
+</body>
+</html>
