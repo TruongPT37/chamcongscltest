@@ -4,25 +4,27 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Đăng ký lịch trực</title>
+  <!-- Nếu bạn dùng client khác, thay CLIENT_ID ở 2 chỗ dưới -->
   <meta name="google-signin-client_id" content="884894188365-cg2m31hli0pq1qp10dv7hnf4hshjju22.apps.googleusercontent.com">
   <style>
     :root { --c:#1976d2; --ok:#2e7d32; --err:#c62828; }
-    body{font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;background:#f7f8fa;margin:0;padding:24px;}
-    .wrap{max-width:720px;margin:0 auto;background:#fff;border:1px solid #e5e7eb;border-radius:12px;box-shadow:0 8px 24px rgba(0,0,0,.06);}
-    header{padding:16px 20px;border-bottom:1px solid #e5e7eb;display:flex;align-items:center;justify-content:space-between;}
-    h1{font-size:18px;margin:0;color:#111827}
+    *{box-sizing:border-box}
+    body{font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;background:#f6f8fb;margin:0;padding:24px;color:#0f172a}
+    .wrap{max-width:720px;margin:0 auto;background:#fff;border:1px solid #e5e7eb;border-radius:14px;box-shadow:0 8px 32px rgba(2,6,23,.08);overflow:hidden}
+    header{padding:16px 20px;border-bottom:1px solid #eef2f7;display:flex;align-items:center;justify-content:space-between;background:#fbfdff}
+    h1{font-size:18px;margin:0;color:#0f172a}
     main{padding:20px}
-    .card{border:1px solid #dbe2ea;border-radius:12px;padding:16px;margin-top:12px}
+    .card{border:1px solid #e5e7eb;border-radius:12px;padding:16px;background:#fff}
     label{display:block;font-weight:600;margin:12px 0 6px}
-    input[type="date"],input[type="text"],textarea{width:100%;padding:10px 12px;border:1px solid #cbd5e1;border-radius:8px;background:#fff;font-size:14px}
+    input[type="date"],input[type="text"]{width:100%;padding:10px 12px;border:1px solid #cbd5e1;border-radius:10px;background:#fff;font-size:14px}
     button{display:inline-block;padding:10px 16px;border:none;border-radius:10px;background:var(--c);color:#fff;font-weight:600;cursor:pointer}
-    button[disabled]{opacity:.5;cursor:not-allowed}
-    .row{display:flex;gap:12px;align-items:flex-end;flex-wrap:wrap}
+    button[disabled]{opacity:.6;cursor:not-allowed}
+    .row{display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin-top:12px}
     .muted{color:#64748b}
     .pill{display:inline-flex;align-items:center;gap:8px;background:#eaf2fb;border:1px solid #cfe2fb;color:#0b5394;padding:6px 10px;border-radius:999px}
-    .msg{margin-top:12px;font-weight:600}
+    .msg{font-weight:600}
     .msg.ok{color:var(--ok)} .msg.err{color:var(--err)}
-    footer{padding:16px 20px;border-top:1px solid #e5e7eb;color:#64748b;font-size:12px}
+    footer{padding:14px 20px;border-top:1px solid #eef2f7;color:#64748b;font-size:12px;background:#fbfdff}
     .g_id_signin{margin-top:8px}
   </style>
   <script src="https://accounts.google.com/gsi/client" async defer></script>
@@ -31,13 +33,12 @@
   <div class="wrap">
     <header>
       <h1>Đăng ký lịch trực</h1>
-      <div id="loginArea">
-        <span class="muted">Chưa đăng nhập</span>
-      </div>
+      <div id="loginArea"><span class="muted">Chưa đăng nhập</span></div>
     </header>
 
     <main>
       <div class="card">
+        <!-- Khi CHƯA đăng nhập -->
         <div id="signedOut">
           <div id="g_id_onload"
                data-client_id="884894188365-cg2m31hli0pq1qp10dv7hnf4hshjju22.apps.googleusercontent.com"
@@ -54,6 +55,7 @@
           <p class="muted">Đăng nhập Google để đăng ký lịch trực.</p>
         </div>
 
+        <!-- Khi ĐÃ đăng nhập -->
         <div id="signedIn" style="display:none">
           <div class="pill">
             <span>Đăng nhập:</span>
@@ -79,79 +81,61 @@
   </div>
 
 <script>
-/** === CONFIG === */
-const WEBHOOK_URL = "https://script.google.com/macros/s/AKfycbzUgYytXDPgFwstp84ucnuysTAKIZJoWCWyei3jPuoObt7QKYATEcT4Kwpfvdax5pri/exec"; // TODO: thay bằng Web App URL
-/** ============== */
+// ===== CONFIG =====
+// Dán Apps Script Web App URL (ví dụ: https://script.google.com/macros/s/xxxxx/exec)
+const WEBHOOK_URL = "REPLACE_WITH_YOUR_APPS_SCRIPT_WEB_APP_URL";
+// ==================
 
 let idToken = null;
 let userEmail = null;
 
+// Callback khi đăng nhập thành công
 function onGoogleCredential(response){
-  // response.credential = Google ID token (JWT)
-  idToken = response.credential;
-  // Decode payload (for UI only)
-  const payload = JSON.parse(atob(idToken.split('.')[1]));
-  userEmail = payload.email || "";
-  // Update UI
+  idToken = response.credential; // Google ID token (JWT)
+  try{
+    const payload = JSON.parse(atob(idToken.split('.')[1]));
+    userEmail = payload.email || "";
+  }catch(_){ userEmail = ""; }
   document.getElementById('who').textContent = userEmail;
   document.getElementById('signedOut').style.display = 'none';
   document.getElementById('signedIn').style.display = '';
-  document.getElementById('loginArea').innerHTML = '<span class="muted">Đăng nhập: </span><strong>'+ userEmail +'</strong>';
+  document.getElementById('loginArea').innerHTML = '<span class="muted">Đăng nhập: </span><strong>'+ (userEmail||'') +'</strong>';
 }
 
+// Đăng xuất
 document.getElementById('btnSignOut').addEventListener('click', () => {
-  google.accounts.id.disableAutoSelect();
-  idToken = null;
-  userEmail = null;
+  try{ google.accounts.id.disableAutoSelect(); }catch(_){}
+  idToken = null; userEmail = null;
   document.getElementById('signedOut').style.display = '';
   document.getElementById('signedIn').style.display = 'none';
   document.getElementById('loginArea').innerHTML = '<span class="muted">Chưa đăng nhập</span>';
 });
 
-// Submit registration
+// Submit form
 document.getElementById('shiftForm').addEventListener('submit', async (e) => {
   e.preventDefault();
   const msg = document.getElementById('status');
-  msg.textContent = '';
-  msg.className = 'msg';
-
-  if(!idToken){
-    msg.textContent = 'Vui lòng đăng nhập trước.';
-    msg.classList.add('err');
-    return;
-  }
+  msg.textContent = ''; msg.className = 'msg';
+  if(!idToken){ msg.textContent='Vui lòng đăng nhập trước.'; msg.classList.add('err'); return; }
 
   const date = document.getElementById('shiftDate').value;
   const note = document.getElementById('note').value || '';
+  if(!date){ msg.textContent='Chưa chọn ngày trực.'; msg.classList.add('err'); return; }
 
-  if(!date){
-    msg.textContent = 'Chưa chọn ngày trực.';
-    msg.classList.add('err');
-    return;
-  }
-
-  // Disable button while sending
-  const btn = document.getElementById('btnSubmit');
-  btn.disabled = true;
-
+  const btn = document.getElementById('btnSubmit'); btn.disabled = true;
   try{
-    const res = await fetch(WEBHOOK_URL, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        id_token: idToken,
-        action: 'shift',
-        shiftDate: date,
-        note
-      })
-    });
-    const data = await res.json().catch(()=>({ok:false,error:'Không đọc được phản hồi'}));
+    // Dùng FormData để tránh preflight CORS
+    const form = new FormData();
+    form.append('id_token', idToken);
+    form.append('action', 'shift');
+    form.append('shiftDate', date);
+    form.append('note', note);
 
+    const res = await fetch(WEBHOOK_URL, { method: 'POST', body: form });
+    const data = await res.json().catch(()=>({ok:false,error:'Không đọc được phản hồi'}));
     if(data.ok){
       msg.textContent = data.message || 'Đăng ký lịch trực thành công!';
-      msg.classList.add('ok');
-      // reset form
-      e.target.reset();
+      msg.classList.add('ok'); e.target.reset();
     }else{
       msg.textContent = data.error || 'Có lỗi xảy ra.';
       msg.classList.add('err');
