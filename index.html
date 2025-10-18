@@ -18,8 +18,6 @@
     .hidden{display:none}
     .ok{color:green;font-weight:700}.err{color:#b00020;font-weight:700}
     #me{background:#e8f5e8;padding:10px;border-radius:8px;margin:12px 0}
-
-    /* Calendar */
     .calendar-container{background:#fff;border:1px solid #ddd;border-radius:10px;padding:12px}
     .month-year-selector{display:flex;gap:12px;margin-bottom:12px}
     .month-year-selector select{width:auto;flex:1}
@@ -67,18 +65,10 @@
         <label>Chọn tháng/năm</label>
         <div class="month-year-selector">
           <select id="monthSelect">
-            <option value="0">Tháng 1</option>
-            <option value="1">Tháng 2</option>
-            <option value="2">Tháng 3</option>
-            <option value="3">Tháng 4</option>
-            <option value="4">Tháng 5</option>
-            <option value="5">Tháng 6</option>
-            <option value="6">Tháng 7</option>
-            <option value="7">Tháng 8</option>
-            <option value="8">Tháng 9</option>
-            <option value="9">Tháng 10</option>
-            <option value="10">Tháng 11</option>
-            <option value="11">Tháng 12</option>
+            <option value="0">Tháng 1</option><option value="1">Tháng 2</option><option value="2">Tháng 3</option>
+            <option value="3">Tháng 4</option><option value="4">Tháng 5</option><option value="5">Tháng 6</option>
+            <option value="6">Tháng 7</option><option value="7">Tháng 8</option><option value="8">Tháng 9</option>
+            <option value="9">Tháng 10</option><option value="10">Tháng 11</option><option value="11">Tháng 12</option>
           </select>
           <select id="yearSelect"></select>
         </div>
@@ -122,9 +112,10 @@
         <label>Ghi chú</label>
         <input id="note3" placeholder="Mô tả công việc làm thêm">
       </div>
+      
       <div class="form-group">
-        <label>Ảnh minh chứng (bắt buộc)</label>
-        <input id="pic3" type="file" accept="image/*" required>
+        <label>Ảnh minh chứng (Tùy chọn)</label>
+        <input id="pic3" type="file" accept="image/*">
       </div>
       <button id="send3">Ghi nhận làm thêm</button>
       <div id="msg3"></div>
@@ -154,11 +145,9 @@
     document.getElementById('me').classList.remove('hidden');
     document.getElementById('me').innerHTML = `Đăng nhập: <b>${userEmail}</b>`;
     document.getElementById('forms').classList.remove('hidden');
-
     const today = new Date().toISOString().split('T')[0];
     document.getElementById('date1').value = today;
     document.getElementById('date3').value = today;
-
     initYearSelector();
     renderCalendar2();
   }
@@ -171,12 +160,10 @@
     google.accounts.id.renderButton(document.getElementById('btn'), { theme:"outline", size:"large", text:"signin_with" });
   };
 
-  // ====== Initialize Year Selector ======
+  // ====== Calendar Functions (No change) ======
   function initYearSelector(){
     const yearSelect = document.getElementById('yearSelect');
     const currentYear = new Date().getFullYear();
-    
-    // Tạo options từ năm hiện tại - 2 đến năm hiện tại + 2
     for(let y = currentYear - 2; y <= currentYear + 2; y++){
       const opt = document.createElement('option');
       opt.value = y;
@@ -184,208 +171,184 @@
       if(y === currentYear) opt.selected = true;
       yearSelect.appendChild(opt);
     }
-
-    // Set month selector to current month
-    const monthSelect = document.getElementById('monthSelect');
-    monthSelect.value = new Date().getMonth();
-
-    // Add event listeners
-    monthSelect.addEventListener('change', onMonthYearChange);
-    yearSelect.addEventListener('change', onMonthYearChange);
+    document.getElementById('monthSelect').value = new Date().getMonth();
+    document.getElementById('monthSelect').addEventListener('change', onMonthYearChange);
+    document.getElementById('yearSelect').addEventListener('change', onMonthYearChange);
   }
-
   function onMonthYearChange(){
     const month = parseInt(document.getElementById('monthSelect').value);
     const year = parseInt(document.getElementById('yearSelect').value);
     currentDate2 = new Date(year, month, 1);
-    selectedDates2 = []; // Clear selections when changing month
+    selectedDates2 = []; 
     renderCalendar2();
   }
-
-  // ====== Calendar (attendance) ======
   function renderCalendar2(){
     const year = currentDate2.getFullYear();
     const month = currentDate2.getMonth();
-
-    // Update selectors to match current date
     document.getElementById('monthSelect').value = month;
     document.getElementById('yearSelect').value = year;
-
     const monthNames = ["Tháng 1","Tháng 2","Tháng 3","Tháng 4","Tháng 5","Tháng 6","Tháng 7","Tháng 8","Tháng 9","Tháng 10","Tháng 11","Tháng 12"];
     document.getElementById('currentMonth2').textContent = `${monthNames[month]} ${year}`;
-
     const dayHeaders = ['CN','T2','T3','T4','T5','T6','T7'];
     document.getElementById('weekday2').innerHTML = dayHeaders.map(d=>`<div class="weekday">${d}</div>`).join('');
-
     const firstDay = new Date(year, month, 1).getDay();
     const daysInMonth = new Date(year, month+1, 0).getDate();
     const daysInPrevMonth = new Date(year, month, 0).getDate();
-
     let html = '';
-    
-    // Previous month days
-    for(let i = firstDay - 1; i >= 0; i--){
-      const d = daysInPrevMonth - i;
-      html += `<div class="calendar-day other-month">${d}</div>`;
-    }
-    
-    // Current month days
+    for(let i = firstDay - 1; i >= 0; i--){ html += `<div class="calendar-day other-month">${daysInPrevMonth - i}</div>`; }
     for(let d=1; d<=daysInMonth; d++){
       const dateStr = `${year}-${String(month+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
       const selected = selectedDates2.includes(dateStr) ? 'selected':'';
       html += `<div class="calendar-day ${selected}" data-date="${dateStr}">${d}</div>`;
     }
-    
-    // Next month days to fill the grid
     const totalCells = Math.ceil((firstDay + daysInMonth)/7)*7;
     const remain = totalCells - (firstDay + daysInMonth);
-    for(let d=1; d<=remain; d++){
-      html += `<div class="calendar-day other-month">${d}</div>`;
-    }
-    
+    for(let d=1; d<=remain; d++){ html += `<div class="calendar-day other-month">${d}</div>`; }
     document.getElementById('calendar2').innerHTML = html;
-
-    // Add click handlers only to current month days
-    document.querySelectorAll('#calendar2 .calendar-day').forEach(el=>{
-      if(el.classList.contains('other-month')) return;
+    document.querySelectorAll('#calendar2 .calendar-day:not(.other-month)').forEach(el=>{
       el.addEventListener('click', ()=>{
         const date = el.getAttribute('data-date');
         const idx = selectedDates2.indexOf(date);
-        if(idx>=0){ 
-          selectedDates2.splice(idx,1); 
-          el.classList.remove('selected'); 
-        }
-        else { 
-          selectedDates2.push(date); 
-          el.classList.add('selected'); 
-        }
+        if(idx>=0){ selectedDates2.splice(idx,1); el.classList.remove('selected'); }
+        else { selectedDates2.push(date); el.classList.add('selected'); }
         updateSelectedDatesDisplay2();
       });
     });
     updateSelectedDatesDisplay2();
   }
-
   function updateSelectedDatesDisplay2(){
     const box = document.getElementById('selectedDates2');
-    if(selectedDates2.length===0){ 
-      box.textContent = 'Chưa chọn ngày nào'; 
-      return; 
-    }
+    if(selectedDates2.length===0){ box.textContent = 'Chưa chọn ngày nào'; return; }
     const s = selectedDates2.slice().sort().map(dt=>{
-      const [y,m,d] = dt.split('-'); 
-      return `<span>${d}/${m}/${y}</span>`;
+      const [y,m,d] = dt.split('-'); return `<span>${d}/${m}/${y}</span>`;
     }).join(' ');
     box.innerHTML = `Đã chọn: ${s}`;
   }
+  // ====== End Calendar Functions ======
 
-  // ====== helpers ======
-  
-  /**
-   * =============================================
-   * NÂNG CẤP HÀM postToWebhook
-   * Hàm này giờ sẽ đọc JSON trả về và ném lỗi 
-   * nếu server báo {status: 'error'}
-   * =============================================
-   */
-  async function postToWebhook(payload, file){
-    const fd = new FormData();
-    fd.append('id_token', idToken);
-    fd.append('employeeId', userEmail);
-    Object.entries(payload).forEach(([k,v])=> fd.append(k, v ?? ''));
-    if(file){ fd.append('photo', file, file.name); }
-    
-    const res = await fetch(WEBHOOK_URL, { method:'POST', body: fd });
 
-    let data;
+  // Gửi JSON, không dùng FormData
+  async function postToServer(payload) {
     try {
-      // Thử đọc response dưới dạng JSON
-      data = await res.json();
+      const res = await fetch(WEBHOOK_URL, { 
+        method: 'POST', 
+        headers: { 'Content-Type': 'text/plain' }, 
+        body: JSON.stringify(payload)
+      });
+      const data = await res.json();
+      if (!res.ok || data.status === 'error') {
+        throw new Error(data.message || 'Lỗi không xác định từ server');
+      }
+      return data;
     } catch (e) {
-      // Nếu server trả về lỗi HTML (do crash) thay vì JSON
-      const text = await res.text();
-      throw new Error(`Lỗi máy chủ: ${res.statusText}. Phản hồi: ${text.substring(0, 100)}...`);
+      throw new Error(`Lỗi mạng: ${e.message}`);
     }
-
-    // Kiểm tra status BÊN TRONG JSON
-    if (!res.ok || data.status === 'error') {
-      // Ném lỗi với message chi tiết từ server
-      throw new Error(data.message || 'Lỗi không xác định từ server');
-    }
-    
-    // Trả về data (chứa message thành công)
-    return data;
   }
+
+  // Chuyển file sang Base64
+  function fileToBase64(file) {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+      reader.onload = () => resolve(reader.result);
+      reader.onerror = error => reject(error);
+    });
+  }
+
 
   // 1) Shift register
   document.getElementById('send1').onclick = async ()=>{
-    const date = document.getElementById('date1').value;
-    const note = document.getElementById('note1').value;
     const el = document.getElementById('msg1');
     const btn = document.getElementById('send1');
-    if(!date){ el.innerHTML = '<span class="err">Chọn ngày trực</span>'; return; }
-    
-    btn.disabled = true;
-    btn.textContent = '⏳ Đang xử lý...';
+    const payload = {
+      action: 'shift', id_token: idToken, employeeId: userEmail,
+      shiftDate: document.getElementById('date1').value,
+      shiftType: 'Day', 
+      note: document.getElementById('note1').value
+    };
+    if(!payload.shiftDate){ el.innerHTML = '<span class="err">Chọn ngày trực</span>'; return; }
+    btn.disabled = true; btn.textContent = '⏳ Đang xử lý...';
     try{
-      // NÂNG CẤP: Lấy message thành công từ server
-      const resData = await postToWebhook({ action:'shift', shiftDate:date, shiftType:'Day', note });
+      const resData = await postToServer(payload);
       el.innerHTML = '<span class="ok">✅ ' + resData.message + '</span>';
-    }catch(e){ 
-      el.innerHTML = '<span class="err">❌ ' + e.message + '</span>'; 
-    } finally {
-      btn.disabled = false;
-      btn.textContent = 'Đăng ký lịch trực';
-    }
+    }catch(e){ el.innerHTML = '<span class="err">❌ ' + e.message + '</span>'; } 
+    finally { btn.disabled = false; btn.textContent = 'Đăng ký lịch trực'; }
   };
 
   // 2) Attendance
   document.getElementById('send2').onclick = async ()=>{
-    const note = document.getElementById('note2').value;
     const el = document.getElementById('msg2');
     const btn = document.getElementById('send2');
     if(selectedDates2.length === 0){ el.innerHTML = '<span class="err">Chọn ít nhất một ngày</span>'; return; }
-    
-    btn.disabled = true;
-    btn.textContent = '⏳ Đang xử lý...';
+    const payload = {
+      action: 'attendance', id_token: idToken, employeeId: userEmail,
+      dates: selectedDates2.join(','),
+      note: document.getElementById('note2').value
+    };
+    btn.disabled = true; btn.textContent = '⏳ Đang xử lý...';
     try {
-      const datesString = selectedDates2.join(',');
-      // NÂNG CẤP: Lấy message thành công từ server
-      const resData = await postToWebhook({
-        action: 'attendance',
-        dates: datesString,
-        note: note
-      });
+      const resData = await postToServer(payload);
       el.innerHTML = `<span class="ok">✅ ${resData.message}</span>`;
       selectedDates2 = [];
       renderCalendar2();
-    } catch (e) {
-      el.innerHTML = `<span class="err">❌ ${e.message}</span>`;
-    } finally {
-      btn.disabled = false;
-      btn.textContent = 'Ghi nhận chấm công';
-    }
+    } catch (e) { el.innerHTML = `<span class="err">❌ ${e.message}</span>`; } 
+    finally { btn.disabled = false; btn.textContent = 'Ghi nhận chấm công'; }
   };
 
-  // 3) OT
+  /*
+   * =============================================
+   * THAY ĐỔI LOGIC: XỬ LÝ ẢNH KHÔNG BẮT BUỘC
+   * =============================================
+   */
   document.getElementById('send3').onclick = async ()=>{
+    const el = document.getElementById('msg3');
+    const btn = document.getElementById('send3');
+
     const date = document.getElementById('date3').value;
     const start = document.getElementById('startTime3').value;
     const end = document.getElementById('endTime3').value;
     const note = document.getElementById('note3').value;
-    const photo = document.getElementById('pic3').files[0];
-    const el = document.getElementById('msg3');
-    const btn = document.getElementById('send3');
-    if(!date || !start || !end || !photo){ el.innerHTML = '<span class="err">Nhập đủ thông tin & ảnh</span>'; return; }
+    const photo = document.getElementById('pic3').files[0]; // Sẽ là 'undefined' nếu không chọn
+
+    // 1. THAY ĐỔI: Bỏ check 'photo'
+    if(!date || !start || !end){ el.innerHTML = '<span class="err">Nhập đủ thông tin Ngày, Bắt đầu, Kết thúc</span>'; return; }
     if(start>=end){ el.innerHTML = '<span class="err">Bắt đầu phải nhỏ hơn kết thúc</span>'; return; }
     
     btn.disabled = true;
     btn.textContent = '⏳ Đang xử lý...';
+    
     try{
-      // NÂNG CẤP: Lấy message thành công từ server
-      const resData = await postToWebhook({ action:'ot', date, start, end, reason: note }, photo);
+      // 2. Tạo payload JSON cơ bản
+      const payload = {
+        action: 'ot',
+        id_token: idToken,
+        employeeId: userEmail,
+        date: date,
+        start: start,
+        end: end,
+        reason: note,
+        // Các trường photo (photo_base64, photo_name, photo_type) 
+        // sẽ được thêm vào BÊN DƯỚI nếu có
+      };
+
+      // 3. THAY ĐỔI: Chỉ xử lý ảnh nếu người dùng chọn
+      if (photo) {
+        btn.textContent = '⏳ Đang xử lý (Mã hóa ảnh)...';
+        const photo_base64 = await fileToBase64(photo);
+        // Thêm thông tin ảnh vào payload
+        payload.photo_base64 = photo_base64;
+        payload.photo_name = photo.name;
+        payload.photo_type = photo.type;
+      } else {
+        btn.textContent = '⏳ Đang tải lên...';
+        // Không làm gì, payload sẽ được gửi đi mà không có thông tin ảnh
+      }
+
+      // 4. Gửi đi
+      const resData = await postToServer(payload);
       el.innerHTML = '<span class="ok">✅ ' + resData.message + '</span>';
-      // Xóa file đã chọn để tránh gửi lại
-      document.getElementById('pic3').value = null;
+      document.getElementById('pic3').value = null; // Xóa file đã chọn
+      
     }catch(e){ 
       el.innerHTML = '<span class="err">❌ ' + e.message + '</span>'; 
     } finally {
@@ -393,6 +356,9 @@
       btn.textContent = 'Ghi nhận làm thêm';
     }
   };
+  // =============================================
+  // KẾT THÚC THAY ĐỔI
+  // =============================================
 </script>
 </body>
 </html>
