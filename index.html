@@ -133,7 +133,8 @@
 
 <script>
   // ==== CONFIG ====
-  const WEBHOOK_URL = "https://script.google.com/macros/s/AKfycbyc46wnD_S3-k7bzSQxx6Z4FwTLvGGEom08YXOvGK4pCO0zBsOuqIR_Fk42sU9OQZBV/exec";
+  // !!! BOSS HÃY DÁN URL /exec MỚI CỦA MÌNH VÀO ĐÂY !!!
+  const WEBHOOK_URL = "https://script.google.com/macros/s/ABC.../exec"; 
   // ================
 
   let idToken = null;
@@ -278,15 +279,41 @@
   }
 
   // ====== helpers ======
+  
+  /**
+   * =============================================
+   * NÂNG CẤP HÀM postToWebhook
+   * Hàm này giờ sẽ đọc JSON trả về và ném lỗi 
+   * nếu server báo {status: 'error'}
+   * =============================================
+   */
   async function postToWebhook(payload, file){
     const fd = new FormData();
     fd.append('id_token', idToken);
     fd.append('employeeId', userEmail);
     Object.entries(payload).forEach(([k,v])=> fd.append(k, v ?? ''));
     if(file){ fd.append('photo', file, file.name); }
+    
     const res = await fetch(WEBHOOK_URL, { method:'POST', body: fd });
-    if(!res.ok){ throw new Error(await res.text() || res.statusText); }
-    return res;
+
+    let data;
+    try {
+      // Thử đọc response dưới dạng JSON
+      data = await res.json();
+    } catch (e) {
+      // Nếu server trả về lỗi HTML (do crash) thay vì JSON
+      const text = await res.text();
+      throw new Error(`Lỗi máy chủ: ${res.statusText}. Phản hồi: ${text.substring(0, 100)}...`);
+    }
+
+    // Kiểm tra status BÊN TRONG JSON
+    if (!res.ok || data.status === 'error') {
+      // Ném lỗi với message chi tiết từ server
+      throw new Error(data.message || 'Lỗi không xác định từ server');
+    }
+    
+    // Trả về data (chứa message thành công)
+    return data;
   }
 
   // 1) Shift register
@@ -300,8 +327,9 @@
     btn.disabled = true;
     btn.textContent = '⏳ Đang xử lý...';
     try{
-      await postToWebhook({ action:'shift', shiftDate:date, shiftType:'Day', note });
-      el.innerHTML = '<span class="ok">✅ Đăng ký lịch trực thành công</span>';
+      // NÂNG CẤP: Lấy message thành công từ server
+      const resData = await postToWebhook({ action:'shift', shiftDate:date, shiftType:'Day', note });
+      el.innerHTML = '<span class="ok">✅ ' + resData.message + '</span>';
     }catch(e){ 
       el.innerHTML = '<span class="err">❌ ' + e.message + '</span>'; 
     } finally {
@@ -321,12 +349,13 @@
     btn.textContent = '⏳ Đang xử lý...';
     try {
       const datesString = selectedDates2.join(',');
-      await postToWebhook({
+      // NÂNG CẤP: Lấy message thành công từ server
+      const resData = await postToWebhook({
         action: 'attendance',
         dates: datesString,
         note: note
       });
-      el.innerHTML = `<span class="ok">✅ Chấm công thành công cho ${selectedDates2.length} ngày</span>`;
+      el.innerHTML = `<span class="ok">✅ ${resData.message}</span>`;
       selectedDates2 = [];
       renderCalendar2();
     } catch (e) {
@@ -352,8 +381,11 @@
     btn.disabled = true;
     btn.textContent = '⏳ Đang xử lý...';
     try{
-      await postToWebhook({ action:'ot', date, start, end, reason: note }, photo);
-      el.innerHTML = '<span class="ok">✅ Ghi nhận làm thêm thành công</span>';
+      // NÂNG CẤP: Lấy message thành công từ server
+      const resData = await postToWebhook({ action:'ot', date, start, end, reason: note }, photo);
+      el.innerHTML = '<span class="ok">✅ ' + resData.message + '</span>';
+      // Xóa file đã chọn để tránh gửi lại
+      document.getElementById('pic3').value = null;
     }catch(e){ 
       el.innerHTML = '<span class="err">❌ ' + e.message + '</span>'; 
     } finally {
